@@ -16,53 +16,120 @@ if (!defined('ABSPATH')) {
     exit;
 }
 ?>
-<div class="wrap">
-    <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
-    <div class="container" id="we-post-tool-admin-create-cpt">
-        <form method="post" action="">
-            <?php wp_nonce_field('we_post_tool_cpt_create', 'we_post_tool_cpt_nonce'); ?>
-            <div class="grid">
-                <label for="cpt-name">نام انگلیسی <small>(بدون فاصله)</small></label>
-                <input type="text" id="cpt-name" name="cpt-name" placeholder="مثال: custom_post" required>
+  <div class="wrap">
+            <main class="container">
+                <article>
+                    <header>
+                        <h1>افزودن پست تایپ جدید</h1>
+                        <p>یک نوع محتوای سفارشی جدید برای وب‌سایت خود ایجاد کنید.</p>
+                    </header>
 
-                <label for="cpt-label">برچسب فارسی</label>
-                <input type="text" id="cpt-label" name="cpt-label" placeholder="مثال: پست سفارشی" required>
+                    <?php 
+                        // نمایش پیام‌های موفقیت یا خطا
+                        settings_errors('cpt_creator_notices'); 
+                    ?>
 
-                <label for="cpt-slug">اسلاگ سفارشی</label>
-                <input type="text" id="cpt-slug" name="cpt-slug" placeholder="مثال: custom-post">
+                    <form method="POST" action="">
+                        <!-- افزودن فیلد امنیتی nonce -->
+                        <?php wp_nonce_field('cpt_creator_save', 'cpt_creator_nonce'); ?>
 
-                <label for="cpt-icon">آیکون منو</label>
-                <input type="text" id="cpt-icon" name="cpt-icon" placeholder="مثال: dashicons-admin-post">
+                        <!-- بخش تنظیمات اصلی -->
+                        <fieldset>
+                            <legend>تنظیمات اصلی</legend>
+                            <div class="grid">
+                                <label for="post_type_key">
+                                    <strong>کلید پست تایپ (انگلیسی)</strong>
+                                    <input type="text" id="post_type_key" name="post_type_key" placeholder="مثال: movie" required>
+                                    <small>این نام در دیتابیس و URLها استفاده می‌شود. باید منحصر به فرد و بدون فاصله باشد. (حداکثر ۲۰ کاراکتر)</small>
+                                </label>
+                                <label for="singular_name">
+                                    <strong>نام مفرد (فارسی)</strong>
+                                    <input type="text" id="singular_name" name="singular_name" placeholder="مثال: فیلم" required>
+                                </label>
+                                <label for="plural_name">
+                                   <strong>نام جمع (فارسی)</strong>
+                                    <input type="text" id="plural_name" name="plural_name" placeholder="مثال: فیلم‌ها" required>
+                                </label>
+                            </div>
+                        </fieldset>
 
-                <label for="cpt-position">ترتیب منو</label>
-                <input type="number" id="cpt-position" name="cpt-position" value="20" min="5" max="100">
+                        <!-- بخش تنظیمات نمایش -->
+                         <fieldset>
+                            <legend>تنظیمات نمایش و منو</legend>
+                            <div class="grid">
+                                <label for="menu_icon">
+                                    آیکون منو (Dashicon)
+                                    <input type="text" id="menu_icon" name="menu_icon" placeholder="dashicons-admin-media">
+                                    <small>نام آیکون را از <a href="https://developer.wordpress.org/resource/dashicons/" target="_blank">کتابخانه Dashicons</a> انتخاب کنید.</small>
+                                </label>
+                                <label for="menu_position">
+                                    ترتیب در منو
+                                    <input type="number" id="menu_position" name="menu_position" placeholder="20" min="5" max="100">
+                                     <small>عددی بین ۵ تا ۱۰۰. اعداد کمتر، جایگاه بالاتری در منو دارند.</small>
+                                </label>
+                            </div>
+                         </fieldset>
 
-                <div>
-                    <label>وضعیت عمومی</label>
-                    <select name="cpt-public" id="cpt-public">
-                        <option value="1">عمومی</option>
-                        <option value="0">خصوصی</option>
-                    </select>
-                </div>
-
-                <label>ویژگی‌های پشتیبانی</label>
-                <div class="grid">
-                    <label><input type="checkbox" name="supports[]" value="title"> عنوان</label>
-                    <label><input type="checkbox" name="supports[]" value="editor"> ویرایشگر</label>
-                    <label><input type="checkbox" name="supports[]" value="thumbnail"> تصویر شاخص</label>
-                </div>
-
-                <div>
-                    <label>فعال‌سازی REST API</label>
-                    <input type="checkbox" name="show_in_rest" id="show_in_rest">
-                </div>
-
-                <?php submit_button('ایجاد پست تایپ', 'primary'); ?>
-            </div>
-        </form>
-    </div>
-    <?php
-    // استایل PicoCSS
-    echo '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">';
-    ?>
-</div>
+                        <!-- بخش تنظیمات پیشرفته -->
+                        <details>
+                            <summary role="button" class="secondary outline"><strong>تنظیمات پیشرفته و قابلیت‌ها</strong></summary>
+                            <fieldset>
+                                <div class="grid">
+                                    <label for="custom_slug">
+                                        نامک سفارشی (Slug)
+                                        <input type="text" id="custom_slug" name="custom_slug" placeholder="مثال: movies">
+                                        <small>اگر خالی بماند، به صورت خودکار از کلید پست تایپ استفاده می‌شود.</small>
+                                    </label>
+                                     <label for="is_public">
+                                        قابلیت دسترسی عمومی (Public)
+                                        <select id="is_public" name="is_public">
+                                            <option value="true" selected>بله (در بخش کاربری و نتایج جستجو)</option>
+                                            <option value="false">خیر (فقط در پنل مدیریت)</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <fieldset role="group">
+                                   <legend>پشتیبانی از ویژگی‌ها (Supports)</legend>
+                                   <label>
+                                       <input type="checkbox" name="supports[]" value="title" checked disabled> عنوان (همیشه فعال)
+                                   </label>
+                                   <label>
+                                       <input type="checkbox" name="supports[]" value="editor" checked> ویرایشگر
+                                   </label>
+                                   <label>
+                                       <input type="checkbox" name="supports[]" value="thumbnail" checked> تصویر شاخص
+                                   </label>
+                                   <label>
+                                       <input type="checkbox" name="supports[]" value="excerpt"> چکیده
+                                   </label>
+                                    <label>
+                                       <input type="checkbox" name="supports[]" value="author"> نویسنده
+                                   </label>
+                                   <label>
+                                       <input type="checkbox" name="supports[]" value="comments"> دیدگاه‌ها
+                                   </label>
+                                   <label>
+                                       <input type="checkbox" name="supports[]" value="custom-fields"> زمینه‌های دلخواه
+                                   </label>
+                                </fieldset>
+                                <fieldset role="group">
+                                     <legend>تنظیمات تکمیلی</legend>
+                                    <label>
+                                        <input type="checkbox" id="has_archive" name="has_archive" checked> قابلیت بایگانی
+                                    </label>
+                                     <label>
+                                        <input type="checkbox" id="show_in_rest" name="show_in_rest" checked> فعال‌سازی REST API
+                                    </label>
+                                     <label>
+                                        <input type="checkbox" id="supports_graphql" name="supports_graphql"> فعال‌سازی GraphQL
+                                    </label>
+                                </fieldset>
+                            </fieldset>
+                        </details>
+                        
+                        <br>
+                        <button type="submit" class="contrast">ذخیره و ساخت پست تایپ</button>
+                    </form>
+                </article>
+            </main>
+        </div>

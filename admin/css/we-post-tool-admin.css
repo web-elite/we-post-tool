@@ -2,3 +2,49 @@
  * All of the CSS for your admin-specific functionality should be
  * included in this file.
  */
+
+.wrap {
+    padding: 1rem 2rem;
+}
+
+main.container {
+    max-width: 960px;
+    margin-top: 1rem;
+}
+
+h1 {
+    color: #1d2327;
+}
+
+article {
+    padding: 2rem;
+    border-radius: 8px;
+    background-color: #fff;
+    border: 1px solid #dcdcde;
+}
+
+small {
+    color: #50575e;
+    display: block;
+    margin-top: -0.75rem;
+    margin-bottom: 1rem;
+}
+
+.grid {
+    grid-gap: 1.5rem;
+}
+
+fieldset[role="group"] {
+    padding-bottom: 0;
+    border-width: 1px;
+    border-color: #dcdcde;
+}
+
+legend {
+    font-weight: bold;
+    padding: 0 0.5rem;
+}
+
+.notice {
+    margin-left: 0 !important;
+}
