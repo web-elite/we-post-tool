@@ -16,6 +16,14 @@ h1 {
     color: #1d2327;
 }
 
+.tab-active {
+    border-color: #4f46e5;
+    /* indigo-600 */
+    color: #4f46e5;
+    background-color: #eef2ff;
+    /* indigo-50 */
+}
+
 article {
     padding: 2rem;
     border-radius: 8px;
