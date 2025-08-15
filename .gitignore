@@ -1,0 +1,5 @@
+/.vscode
+/.git
+/vendor
+/logs
+/storage/logs
