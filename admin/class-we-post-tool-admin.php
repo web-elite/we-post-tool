@@ -76,7 +76,6 @@ class We_Post_Tool_Admin
 		 */
 
 		wp_enqueue_style($this->plugin_name, plugin_dir_url(__FILE__) . 'css/we-post-tool-admin.css', array(), $this->version, 'all');
-		wp_enqueue_style($this->plugin_name . '-pico', plugin_dir_url(__FILE__) . 'css/we-post-tool-picocss.css', array(), $this->version, 'all');
 	}
 
 	/**
@@ -100,6 +99,10 @@ class We_Post_Tool_Admin
 		 */
 
 		wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/we-post-tool-admin.js', array('jquery'), $this->version, false);
+		wp_enqueue_script($this->plugin_name . '-tailwind', plugin_dir_url(__FILE__) . 'js/we-post-tool-tailwind.min.js', array('jquery'), $this->version, false);
+		wp_register_script($this->plugin_name . '-vars', false);
+		wp_enqueue_script($this->plugin_name . '-vars');
+		wp_localize_script($this->plugin_name . '-vars', 'importer_ajax_object', ['ajax_url' => admin_url('admin-ajax.php'), 'nonce' => wp_create_nonce('importer_tax_nonce')]);
 	}
 
 	/**
@@ -110,57 +113,72 @@ class We_Post_Tool_Admin
 	public function add_admin_menu()
 	{
 		add_menu_page(
-			'ابزار پست‌ها',
-			'ابزار پست‌ها',
+			'درون‌ریزی پست',
+			'درون‌ریزی پست',
 			'manage_options',
-			'we-post-tool',
-			[$this, 'render_dashboard'],
+			WE_POST_TOOL_MENU_SLUG,
+			[$this, 'render_import_page'],
 			'dashicons-welcome-widgets-menus',
 			99
 		);
-		// add_submenu_page(
-		// 	'we-post-tool',
-		// 	'درون‌ریزی پست',
-		// 	'درون‌ریزی پست',
-		// 	'manage_options',
-		// 	'we-post-tool-import',
-		// 	[$this, 'render_import_page']
-		// );
 		add_submenu_page(
-			'we-post-tool',
-			'پست تایپ ساز',
-			'پست تایپ ساز',
+			WE_POST_TOOL_MENU_SLUG,
+			'گزارشات درون‌ریزی',
+			'گزارشات درون‌ریزی',
 			'manage_options',
-			'we-post-tool-cpt',
-			[$this, 'render_cpt_page']
+			WE_POST_TOOL_MENU_SLUG . '_logs',
+			[$this, 'render_logs_page']
 		);
-		add_submenu_page(
-			'we-post-tool',
-			'تاگسونومی ساز',
-			'تاگسونومی ساز',
-			'manage_options',
-			'we-post-tool-tax',
-			[$this, 'render_tax_page']
-		);
-	}
 
-	public function render_dashboard()
-	{
-		include_once(__DIR__ . '/partials/we-post-tool-admin-home.php');
+		add_submenu_page(
+			WE_POST_TOOL_MENU_SLUG,
+			'آیتم ها',
+			'آیتم ها',
+			'manage_options',
+			WE_POST_TOOL_MENU_SLUG . '_items',
+			[$this, 'render_items_page']
+		);
+		add_submenu_page(
+			WE_POST_TOOL_MENU_SLUG,
+			'افزودن آیتم جدید',
+			'افزودن آیتم جدید',
+			'manage_options',
+			WE_POST_TOOL_MENU_SLUG . '_cpt_ctx',
+			[$this, 'render_cpt_ctx_page']
+		);
 	}
 
 	public function render_import_page()
 	{
-		include_once(__DIR__ . '/partials/we-post-tool-admin-home.php');
+		include_once(__DIR__ . '/partials/we-post-tool-admin-import.php');
 	}
 
-	public function render_cpt_page()
+
+	public function render_logs_page()
 	{
-		include_once(__DIR__ . '/partials/we-post-tool-admin-create-cpt');
+		require_once plugin_dir_path(dirname(__FILE__)) . 'includes/class-we-post-tool-logs.php';
+		$log_table = new We_Post_Tool_Logs();
+		$log_table->prepare_items();
+?>
+		<div class="wrap">
+			<h1 class="wp-heading-inline">گزارشات درون ریزی</h1>
+			<?php if (isset($_GET['import']) && $_GET['import'] === 'complete'): ?>
+				<div id="message" class="updated notice is-dismissible">
+					<p>فرایند درون‌ریزی با موفقیت انجام شد! آخرین گزارش را در زیر مشاهده کنید.</p>
+				</div>
+			<?php endif; ?>
+			<form method="post"><?php $log_table->display(); ?></form>
+		</div>
+<?php
 	}
 
-	public function render_tax_page()
+	public function render_items_page()
 	{
-		include_once(__DIR__ . '/partials/we-post-tool-admin-create-tax');
+		include_once(__DIR__ . '/partials/we-post-tool-admin-items.php');
+	}
+
+	public function render_cpt_ctx_page()
+	{
+		include_once(__DIR__ . '/partials/we-post-tool-admin-cpt-ctx.php');
 	}
 }
