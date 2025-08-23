@@ -45,6 +45,7 @@ class We_Post_Tool_Activator
             error_details longtext,
             PRIMARY KEY  (id)
         ) $charset_collate;";
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta($sql);
 	}
 }
