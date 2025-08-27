@@ -154,9 +154,8 @@ class We_Post_Tool_Admin
 
 	public function render_import_page()
 	{
-		include_once(__DIR__ . '/partials/we-post-tool-admin-import.php');
+		include_once WE_POST_TOOL_DIR . 'admin/partials/we-post-tool-admin-import.php';
 	}
-
 
 	public function render_logs_page()
 	{
@@ -178,11 +177,11 @@ class We_Post_Tool_Admin
 
 	public function render_items_page()
 	{
-		include_once(__DIR__ . '/partials/we-post-tool-admin-items.php');
+		include_once(WE_POST_TOOL_DIR . 'admin/partials/we-post-tool-admin-items.php');
 	}
 
 	public function render_cpt_ctx_page()
 	{
-		include_once(__DIR__ . '/partials/we-post-tool-admin-cpt-ctx.php');
+		include_once(WE_POST_TOOL_DIR . 'admin/partials/we-post-tool-admin-cpt-ctx.php');
 	}
 }
