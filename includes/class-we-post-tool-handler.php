@@ -36,8 +36,8 @@ class We_Post_Tool_Handler
         // Handle item deletion
         if (isset($_GET['action']) && isset($_GET['item_key']) && isset($_GET['_wpnonce'])) {
             $key = sanitize_key($_GET['item_key']);
-            if ($_GET['action'] === 'delete_cpt' && wp_verify_nonce($_GET['_wpnonce'], 'delete_cpt_' . $key)) $this->delete_item(self::CPT_OPTION, $key, 'Post Type');
-            if ($_GET['action'] === 'delete_tax' && wp_verify_nonce($_GET['_wpnonce'], 'delete_tax_' . $key)) $this->delete_item(self::TAX_OPTION, $key, 'Taxonomy');
+            if ($_GET['action'] === 'delete_cpt' && wp_verify_nonce($_GET['_wpnonce'], 'delete_cpt_' . $key)) $this->delete_item(WE_POST_TOOL_CPT_OPTION, $key, 'Post Type');
+            if ($_GET['action'] === 'delete_tax' && wp_verify_nonce($_GET['_wpnonce'], 'delete_tax_' . $key)) $this->delete_item(WE_POST_TOOL_CTX_OPTION, $key, 'Taxonomy');
         }
 
         // Handle importer form submissions
@@ -63,7 +63,7 @@ class We_Post_Tool_Handler
             unset($items[$key]);
             update_option($option_name, $items);
             flush_rewrite_rules();
-            wp_redirect(admin_url('admin.php?page=' . WE_POST_TOOL_MENU_SLUG . '&message=deleted&item_type=' . urlencode($item_type_label)));
+            wp_redirect(admin_url('admin.php?page=' . WE_POST_TOOL_MENU_SLUG . '_items&message=deleted&item_type=' . urlencode($item_type_label)));
             exit;
         }
     }
@@ -135,7 +135,6 @@ class We_Post_Tool_Handler
         exit;
     }
 
-
     private function handle_importer_preview()
     {
         if (!current_user_can('import')) wp_die('You do not have permission to import content.');
@@ -167,17 +166,6 @@ class We_Post_Tool_Handler
         }
     }
 
-    public function ajax_get_taxonomies()
-    {
-        check_ajax_referer('importer_tax_nonce', 'security');
-        if (!isset($_POST['post_type']) || !post_type_exists($_POST['post_type'])) wp_send_json_error(['message' => 'Invalid post type.']);
-        $post_type = sanitize_key($_POST['post_type']);
-        $taxonomies = get_object_taxonomies($post_type, 'objects');
-        $results = [];
-        foreach ($taxonomies as $tax) if ($tax->show_ui) $results[] = ['key' => $tax->name, 'name' => $tax->label];
-        wp_send_json_success($results);
-    }
-
     private function log_import_activity($report, $file_name, $post_type, $user_id)
     {
         global $wpdb;
@@ -194,17 +182,26 @@ class We_Post_Tool_Handler
 
     public function handle_forms()
     {
+        $result = [
+            'status' => 'error',
+            'status_code' => 400,
+            'message' => ''
+        ];
+
         if (!isset($_POST['cpt_tax_nonce'])) {
+            wp_send_json(['message' => 'دسترسی غیر مجاز.'], 403);
             return;
         }
 
         if (isset($_POST['action']) && $_POST['action'] === 'create_cpt' && wp_verify_nonce($_POST['cpt_tax_nonce'], 'create_cpt_action')) {
-            $this->handle_cpt_form();
+            $result = $this->handle_cpt_form();
         }
 
         if (isset($_POST['action']) && $_POST['action'] === 'create_tax' && wp_verify_nonce($_POST['cpt_tax_nonce'], 'create_tax_action')) {
-            $this->handle_tax_form();
+            $result = $this->handle_tax_form();
         }
+
+        wp_send_json($result, $result['status_code']);
     }
 
     /**
@@ -212,14 +209,19 @@ class We_Post_Tool_Handler
      */
     private function handle_cpt_form()
     {
+        $result = [];
+
         if (!current_user_can('manage_options')) {
             wp_die('دسترسی غیر مجاز.');
         }
 
         $key = sanitize_key($_POST['post_type_key']);
         if (empty($key) || strlen($key) > 20 || post_type_exists($key)) {
-            add_settings_error('cpt_tax_notices', 'cpt_error', 'خطا: کلید پست تایپ نامعتبر، تکراری یا بیش از حد طولانی است.', 'error');
-            return;
+            return [
+                'message' => "خطا: کلید پست تایپ نامعتبر یا تکراری است.",
+                'status' => 'error',
+                'status_code' => 400
+            ];
         }
 
         $singular = sanitize_text_field($_POST['singular_name']);
@@ -253,24 +255,39 @@ class We_Post_Tool_Handler
         $all_post_types[$key] = $args;
         update_option(WE_POST_TOOL_CPT_OPTION, $all_post_types);
 
+        $result = [
+            'title' => "موفق",
+            'message' => "پست تایپ '{$plural}' با موفقیت ساخته شد.",
+            'status' => 'success',
+            'status_code' => 200
+        ];
+
         flush_rewrite_rules();
-        add_settings_error('cpt_tax_notices', 'cpt_success', "پست تایپ '{$plural}' با موفقیت ساخته شد.", 'success');
+        return $result;
     }
 
     /**
      * Process Create Taxonomy
      */
-    private function handle_tax_form()
+    private function handle_tax_form(): array
     {
+        $result = [
+            'message' => "",
+            'status' => 'error',
+            'status_code' => 500
+        ];
+
         if (!current_user_can('manage_options')) {
             wp_die('دسترسی غیر مجاز.');
         }
 
-        // پاکسازی و اعتبارسنجی داده‌ها
         $key = sanitize_key($_POST['tax_key']);
         if (empty($key) || taxonomy_exists($key)) {
-            add_settings_error('cpt_tax_notices', 'tax_error', 'خطا: کلید Taxonomy نامعتبر یا تکراری است.', 'error');
-            return;
+            return [
+                'message' => "خطا: کلید تاکسونومی نامعتبر یا تکراری است.",
+                'status' => 'error',
+                'status_code' => 400
+            ];
         }
 
         $singular = sanitize_text_field($_POST['tax_singular']);
@@ -278,11 +295,13 @@ class We_Post_Tool_Handler
         $post_types = isset($_POST['post_types']) ? array_map('sanitize_key', $_POST['post_types']) : [];
 
         if (empty($post_types)) {
-            add_settings_error('cpt_tax_notices', 'tax_error', 'خطا: حداقل یک پست تایپ باید برای Taxonomy انتخاب شود.', 'error');
-            return;
+            return [
+                'message' => "خطا: حداقل یک پست تایپ باید برای تاکسونومی انتخاب شود.",
+                'status' => 'error',
+                'status_code' => 400
+            ];
         }
 
-        // ساخت آرایه آرگومان‌ها
         $args = [
             'labels' => [
                 'name' => $plural,
@@ -313,7 +332,13 @@ class We_Post_Tool_Handler
         ];
         update_option(WE_POST_TOOL_CTX_OPTION, $all_taxonomies);
 
+        $result = [
+            'message' => "تاکسونومی '{$plural}' با موفقیت ساخته شد.",
+            'status' => 'success',
+            'status_code' => 200
+        ];
         flush_rewrite_rules();
-        add_settings_error('cpt_tax_notices', 'tax_success', "Taxonomy '{$plural}' با موفقیت ساخته شد.", 'success');
+        return $result;
+    }
     }
 }
