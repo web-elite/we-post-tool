@@ -104,35 +104,35 @@ class We_Post_Tool
 		/**
 		 * Autoload library
 		 */
-		require_once plugin_dir_path(dirname(__FILE__)) . 'vendor/autoload.php';
+		require_once WE_POST_TOOL_DIR . 'vendor/autoload.php';
 
 		/**
 		 * The class responsible for orchestrating the actions and filters of the
 		 * core plugin.
 		 */
-		require_once plugin_dir_path(dirname(__FILE__)) . 'includes/class-we-post-tool-loader.php';
+		require_once WE_POST_TOOL_DIR . 'includes/class-we-post-tool-loader.php';
 
 		/**
 		 * The class responsible for defining internationalization functionality
 		 * of the plugin.
 		 */
-		require_once plugin_dir_path(dirname(__FILE__)) . 'includes/class-we-post-tool-i18n.php';
+		require_once WE_POST_TOOL_DIR . 'includes/class-we-post-tool-i18n.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
-		require_once plugin_dir_path(dirname(__FILE__)) . 'admin/class-we-post-tool-admin.php';
+		require_once WE_POST_TOOL_DIR . 'admin/class-we-post-tool-admin.php';
 
 		/**
 		 * The class is a powerfull handler for plugin actions
 		 */
-		require_once plugin_dir_path(dirname(__FILE__)) . 'includes/class-we-post-tool-handler.php';
+		require_once WE_POST_TOOL_DIR . 'includes/class-we-post-tool-handler.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the public-facing
 		 * side of the site.
 		 */
-		require_once plugin_dir_path(dirname(__FILE__)) . 'public/class-we-post-tool-public.php';
+		require_once WE_POST_TOOL_DIR . 'public/class-we-post-tool-public.php';
 
 		$this->loader = new We_Post_Tool_Loader();
 	}
