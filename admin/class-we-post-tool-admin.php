@@ -99,10 +99,14 @@ class We_Post_Tool_Admin
 		 */
 
 		wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/we-post-tool-admin.js', array('jquery'), $this->version, false);
+		wp_localize_script('we-post-tool-admin', 'we_admin_js', [
+			'ajaxurl' => admin_url('admin-ajax.php'),
+			'nonce' => wp_create_nonce('cpt_tax_nonce')
+		]);
+
 		wp_enqueue_script($this->plugin_name . '-tailwind', plugin_dir_url(__FILE__) . 'js/we-post-tool-tailwind.min.js', array('jquery'), $this->version, false);
-		wp_register_script($this->plugin_name . '-vars', false);
-		wp_enqueue_script($this->plugin_name . '-vars');
-		wp_localize_script($this->plugin_name . '-vars', 'importer_ajax_object', ['ajax_url' => admin_url('admin-ajax.php'), 'nonce' => wp_create_nonce('importer_tax_nonce')]);
+		wp_enqueue_script($this->plugin_name . '-sweetalert2', plugin_dir_url(__FILE__) . 'js/we-post-tool-sweetalert2.min.js', array('jquery'), $this->version, false);
+		wp_enqueue_script($this->plugin_name . '-xlxs', plugin_dir_url(__FILE__) . 'js/we-post-tool-xlsx.full.min.js', array('jquery'), $this->version, false);
 	}
 
 	/**
