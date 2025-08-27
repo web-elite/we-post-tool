@@ -60,7 +60,7 @@ $taxonomies = get_option(WE_POST_TOOL_CTX_OPTION, []);
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?php echo $cpt['public'] ? '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">بله</span>' : '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">خیر</span>'; ?></td>
                                     <td class="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
                                         <a href="#" class="text-indigo-600 hover:text-indigo-900 ml-4">ویرایش</a>
-                                        <?php $delete_url = wp_nonce_url(admin_url('admin.php?page=cpt_tax_manage&action=delete_cpt&item_key=' . $key), 'delete_cpt_' . $key); ?>
+                                        <?php $delete_url = wp_nonce_url(admin_url('admin.php?page='. WE_POST_TOOL_MENU_SLUG . '_items' .'&action=delete_cpt&item_key=' . $key), 'delete_cpt_' . $key); ?>
                                         <a href="<?php echo $delete_url; ?>" class="text-red-600 hover:text-red-900 delete-link" data-item-name="<?php echo esc_attr($cpt['labels']['name']); ?>">حذف</a>
                                     </td>
                                 </tr>
@@ -106,7 +106,7 @@ $taxonomies = get_option(WE_POST_TOOL_CTX_OPTION, []);
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
                                         <a href="#" class="text-indigo-600 hover:text-indigo-900 ml-4">ویرایش</a>
-                                        <?php $delete_url = wp_nonce_url(admin_url('admin.php?page=cpt_tax_manage&action=delete_tax&item_key=' . $key), 'delete_tax_' . $key); ?>
+                                        <?php $delete_url = wp_nonce_url(admin_url('admin.php?page='. WE_POST_TOOL_MENU_SLUG . '_items' .'&action=delete_tax&item_key=' . $key), 'delete_tax_' . $key); ?>
                                         <a href="<?php echo $delete_url; ?>" class="text-red-600 hover:text-red-900 delete-link" data-item-name="<?php echo esc_attr($tax['args']['labels']['name']); ?>">حذف</a>
                                     </td>
                                 </tr>
