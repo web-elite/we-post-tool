@@ -340,5 +340,119 @@ class We_Post_Tool_Handler
         flush_rewrite_rules();
         return $result;
     }
+
+    public function get_taxonomies()
+    {
+        $taxonomies = get_taxonomies(['public' => true], 'objects');
+        $result = array_map(function ($tax) {
+            return ['taxonomy' => $tax->name, 'name' => $tax->labels->singular_name];
+        }, $taxonomies);
+        wp_send_json(array_values($result));
+    }
+
+    public function get_terms()
+    {
+        $taxonomy = sanitize_text_field($_POST['taxonomy']);
+        $terms = get_terms(['taxonomy' => $taxonomy, 'hide_empty' => false]);
+        wp_send_json($terms);
+    }
+
+    public function start_import()
+    {
+        global $wpdb;
+        $data = json_decode(stripslashes($_POST['data']), true);
+        $mappings = json_decode(stripslashes($_POST['mappings']), true);
+        $title = json_decode(stripslashes($_POST['title']), true);
+
+        $job_id = wp_generate_uuid4();
+        $wpdb->insert(
+            $wpdb->prefix . WE_POST_TOOL_LOG_TABLE,
+            ['job_id' => $job_id, 'status' => 'pending', 'log' => 'Import started', 'created_at' => current_time('mysql')],
+            ['%s', '%s', '%s', '%s']
+        );
+
+        wp_schedule_single_event(time() + 10, 'we_post_tool_cron', [$job_id, $data, $mappings, $title]);
+        wp_send_json(['job_id' => $job_id, 'logs' => ['Import scheduled']]);
+    }
+
+    public function process_import($job_id, $data, $mappings, $title)
+    {
+        global $wpdb;
+        $logs = [];
+
+        foreach (array_slice($data, 1) as $row) {
+            $post_title = '';
+            $taxonomy_terms = [];
+            $permalink_parts = [];
+
+            foreach ($title as $part) {
+                if ($part['column']) {
+                    $value = $row[$part['column']];
+                    $post_title .= $value . ' ';
+                    if ($mappings[$part['column']]) {
+                        $taxonomy = $mappings[$part['column']]['taxonomy'];
+                        $parent = $mappings[$part['column']]['parent'] ?? 0;
+                        $term = term_exists($value, $taxonomy, $parent);
+                        if (!$term) {
+                            $term = wp_insert_term($value, $taxonomy, ['parent' => $parent]);
+                            if (!is_wp_error($term)) {
+                                $logs[] = "Created term: $value in $taxonomy";
+                            }
+                        }
+                        $taxonomy_terms[$taxonomy][] = $term['term_id'];
+                        $permalink_parts[] = sanitize_title($value);
+                    }
+                } else {
+                    $post_title .= $part['text'] . ' ';
+                }
+            }
+
+            $post_id = wp_insert_post([
+                'post_title' => trim($post_title),
+                'post_type' => 'post',
+                'post_status' => 'publish',
+                'post_name' => implode('/', $permalink_parts)
+            ]);
+
+            if (!is_wp_error($post_id)) {
+                foreach ($taxonomy_terms as $taxonomy => $terms) {
+                    wp_set_post_terms($post_id, $terms, $taxonomy);
+                }
+                $logs[] = "Created post: $post_title";
+            } else {
+                $logs[] = "Error creating post: " . $post_title;
+            }
+        }
+
+        $wpdb->update(
+            $wpdb->prefix . WE_POST_TOOL_LOG_TABLE,
+            ['status' => 'completed', 'log' => implode("\n", $logs), 'updated_at' => current_time('mysql')],
+            ['job_id' => $job_id],
+            ['%s', '%s', '%s'],
+            ['%s']
+        );
+
+        wp_send_json(['logs' => $logs]);
+    }
+
+    public static function create_log_table()
+    {
+        global $wpdb;
+        $table_name = $wpdb->prefix . WE_POST_TOOL_LOG_TABLE;
+        $charset_collate = $wpdb->get_charset_collate();
+
+        $sql = "CREATE TABLE $table_name (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            job_id VARCHAR(36) NOT NULL,
+            status VARCHAR(20) NOT NULL,
+            log TEXT,
+            created_at DATETIME NOT NULL,
+            updated_at DATETIME,
+            PRIMARY KEY (id),
+            UNIQUE KEY job_id (job_id)
+        ) $charset_collate;";
+
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
     }
 }

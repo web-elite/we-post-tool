@@ -167,9 +167,15 @@ class We_Post_Tool
 		$plugin_admin = new We_Post_Tool_Admin($this->get_plugin_name(), $this->get_version());
 		$plugin_handler = new We_Post_Tool_Handler();
 
-		$this->loader->add_action('admin_init', $plugin_handler, 'handle_requests');
+		$this->loader->add_action('wp_ajax_we_post_tool_get_taxonomies', $plugin_handler, 'get_taxonomies');
+		$this->loader->add_action('wp_ajax_we_post_tool_get_terms', $plugin_handler, 'get_terms');
+		$this->loader->add_action('wp_ajax_we_post_tool_start_import', $plugin_handler, 'start_import');
+		$this->loader->add_action('we_post_tool_cron', $plugin_handler, 'process_import');
 		$this->loader->add_action('init', $plugin_handler, 'register_saved_items', 10);
-		$this->loader->add_action('wp_ajax_we_get_taxonomies', $plugin_handler, 'ajax_get_taxonomies');
+		$this->loader->add_action('admin_init', $plugin_handler, 'handle_requests');
+		$this->loader->add_action('wp_ajax_create_cpt', $plugin_handler, 'handle_forms');
+		$this->loader->add_action('wp_ajax_create_tax', $plugin_handler, 'handle_forms');
+
 		$this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_styles');
 		$this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts');
 		$this->loader->add_action('admin_menu', $plugin_admin, 'add_admin_menu');
